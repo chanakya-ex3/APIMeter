@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: apimeter-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - apimeter-network
+
+  apimeter:
+    build: .
+    container_name: apimeter-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - expressbackend
+    environment:
+      - REDIS_ADDR=redis:6379
+      - ENDPOINTS=/api/fast:10,/api/medium:20,/api/slow:5
+      - TARGET_API_URL=http://expressbackend:3000
+      - ENABLE_AUTH=true
+    networks:
+      - apimeter-network
+
+  expressbackend:
+    build:
+      context: ../ExpressBackend
+    container_name: express-backend
+    ports:
+      - "3000:3000"
+    networks:
+      - apimeter-network
+
+networks:
+  apimeter-network:
+    driver: bridge
