@@ -12,9 +12,11 @@ for port in ports:
     print(f"\n--- Testing on port {port} ---")
     for endpoint in endpoints:
         url = f"http://localhost:{port}{endpoint}"
+        # Add headers only when hitting port 8080
+        headers = {'X-App-Id': 'demoappid','X-App-Key':'demokey123'} if port == 8080 else None
         try:
             start = time.perf_counter()
-            response = requests.get(url, timeout=5)
+            response = requests.get(url, headers=headers, timeout=5)
             end = time.perf_counter()
             duration = end - start
             results.append({
@@ -23,7 +25,8 @@ for port in ports:
                 "status_code": response.status_code,
                 "response_time": round(duration, 4)
             })
-            print(f"{endpoint} responded in {duration:.4f} seconds with status {response.status_code}")
+            hdrs_info = f" with headers {headers}" if headers else ""
+            print(f"{endpoint} responded in {duration:.4f} seconds with status {response.status_code}{hdrs_info}")
         except requests.exceptions.RequestException as e:
             print(f"Failed to connect to {url}: {e}")
             results.append({
